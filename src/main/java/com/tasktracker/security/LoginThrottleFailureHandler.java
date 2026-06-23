@@ -1,5 +1,6 @@
 package com.tasktracker.security;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
@@ -25,7 +26,7 @@ public class LoginThrottleFailureHandler extends SimpleUrlAuthenticationFailureH
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-                                         AuthenticationException exception) throws IOException {
+            AuthenticationException exception) throws IOException, ServletException {
         String ip = clientIp(request);
         boolean withinLimit = rateLimiter.allow("login:" + ip, 10);
 
