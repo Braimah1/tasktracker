@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Tasks')}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div th:replace="~{fragments/layout :: sidebar('tasks')}"></div>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="d-flex align-center gap-12">
+        <button class="mobile-toggle" id="mobileToggle">☰</button>
+        <span class="page-title">All Tasks</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openCategoryModal()">+ Category</button>
+        <a th:href="@{/tasks/create}" class="btn btn-primary btn-sm">+ New Task</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div th:if="${message}" class="alert alert-success" data-auto-dismiss>✓ <span th:text="${message}"></span></div>
+      <div th:if="${error}" class="alert alert-error" data-auto-dismiss>⚠ <span th:text="${error}"></span></div>
+
+      <!-- Filter Bar -->
+      <form th:action="@{/tasks}" method="get">
+        <div class="filter-bar">
+          <input class="form-control search-input" type="text" name="search"
+                 th:value="${search}" placeholder="Search tasks...">
+
+          <select class="form-control filter-auto-submit" name="status">
+            <option value="">All Statuses</option>
+            <option th:each="s : ${statuses}"
+                    th:value="${s.name()}"
+                    th:text="${s.name().replace('_', ' ')}"
+                    th:selected="${s.name() == selectedStatus}">STATUS</option>
+          </select>
+
+          <select class="form-control filter-auto-submit" name="priority">
+            <option value="">All Priorities</option>
+            <option th:each="p : ${priorities}"
+                    th:value="${p.name()}"
+                    th:text="${p.name()}"
+                    th:selected="${p.name() == selectedPriority}">PRIORITY</option>
+          </select>
+
+          <select class="form-control filter-auto-submit" name="categoryId">
+            <option value="">All Categories</option>
+            <option th:each="c : ${categories}"
+                    th:value="${c.id}"
+                    th:text="${c.name}"
+                    th:selected="${c.id == selectedCategory}">Category</option>
+          </select>
+
+          <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+          <a th:href="@{/tasks}" class="btn btn-secondary btn-sm">Clear</a>
+        </div>
+      </form>
+
+      <!-- Task Table -->
+      <div class="card">
+        <div th:if="${#lists.isEmpty(tasks)}" class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No tasks found</h3>
+          <p>Try adjusting your filters, or create a new task</p>
+          <a th:href="@{/tasks/create}" class="btn btn-primary btn-sm" style="margin-top:12px;">+ New Task</a>
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(tasks)}">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Days Left</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="task : ${tasks}">
+                <td>
+                  <div class="task-title-cell" th:text="${task.title}">Title</div>
+                  <div class="task-desc-cell" th:if="${task.description != null and !task.description.isEmpty()}">
+                    <span th:text="${task.description}">desc</span>
+                  </div>
+                </td>
+
+                <td class="text-sm text-muted" th:text="${task.category != null ? task.category.name : '—'}">—</td>
+
+                <td>
+                  <span th:class="'badge badge-' + ${task.priority.name().toLowerCase()}"
+                        th:text="${task.priority.name()}">LOW</span>
+                </td>
+
+                <td>
+                  <span th:with="sc=${task.status.name() == 'IN_PROGRESS' ? 'inprogress' : task.status.name().toLowerCase()}"
+                        th:class="'badge badge-' + ${sc}"
+                        th:text="${task.status.name().replace('_', ' ')}">PENDING</span>
+                </td>
+
+                <td class="text-sm">
+                  <span th:if="${task.dueDate != null}" th:text="${#temporals.format(task.dueDate, 'MMM d, yyyy')}">—</span>
+                  <span th:unless="${task.dueDate != null}" class="text-muted">—</span>
+                  <!-- Due soon badges -->
+                  <span th:if="${task.dueDate != null and task.status.name() != 'COMPLETED' and task.daysRemaining >= 0 and task.daysRemaining <= 1}"
+                        class="badge" style="background:#FEF2F2;color:#B91C1C;margin-left:4px;">24h</span>
+                  <span th:if="${task.dueDate != null and task.status.name() != 'COMPLETED' and task.daysRemaining > 1 and task.daysRemaining <= 3}"
+                        class="badge" style="background:#FFFBEB;color:#92400E;margin-left:4px;">3d</span>
+                </td>
+
+                <td>
+                  <span th:if="${task.dueDate == null}" class="days-na">—</span>
+                  <span th:if="${task.status.name() == 'COMPLETED'}" class="days-ok">Done ✓</span>
+                  <span th:if="${task.dueDate != null and task.status.name() != 'COMPLETED' and task.daysRemaining < 0}"
+                        class="days-urgent" th:text="${-task.daysRemaining + 'd overdue'}">overdue</span>
+                  <span th:if="${task.dueDate != null and task.status.name() != 'COMPLETED' and task.daysRemaining >= 0 and task.daysRemaining <= 3}"
+                        class="days-soon" th:text="${task.daysRemaining + 'd'}">3d</span>
+                  <span th:if="${task.dueDate != null and task.status.name() != 'COMPLETED' and task.daysRemaining > 3}"
+                        class="days-ok" th:text="${task.daysRemaining + 'd'}">10d</span>
+                </td>
+
+                <td class="text-sm text-muted" th:text="${#temporals.format(task.createdAt, 'MMM d')}">Jan 1</td>
+
+                <td>
+                  <div class="d-flex gap-8 align-center">
+                    <!-- Toggle complete -->
+                    <form th:action="@{/tasks/toggle/{id}(id=${task.id})}" method="post" style="margin:0;">
+                      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                      <button type="submit" class="btn btn-sm"
+                              th:class="${task.status.name() == 'COMPLETED'} ? 'btn btn-sm btn-secondary' : 'btn btn-sm btn-success'"
+                              th:title="${task.status.name() == 'COMPLETED'} ? 'Mark as pending' : 'Mark as complete'">
+                        <span th:text="${task.status.name() == 'COMPLETED'} ? '↩' : '✓'">✓</span>
+                      </button>
+                    </form>
+
+                    <a th:href="@{/tasks/edit/{id}(id=${task.id})}" class="btn btn-secondary btn-sm" title="Edit">✎</a>
+
+                    <form th:action="@{/tasks/delete/{id}(id=${task.id})}" method="post" style="margin:0;">
+                      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                      <button type="submit" class="btn btn-danger btn-sm" title="Delete"
+                              data-confirm="Delete this task permanently?">✕</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div id="categoryModal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.5);"
+     th:attr="style=${true} ? 'display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.5);' : ''">
+  <div style="background:white;border-radius:12px;padding:28px;width:90%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px;">Add Category</h3>
+    <form th:action="@{/categories/create}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="form-group">
+        <label class="form-label">Category Name</label>
+        <input class="form-control" type="text" name="name" placeholder="e.g. Work, Personal..." required maxlength="100">
+      </div>
+      <div class="d-flex gap-8">
+        <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Category</button>
+      </div>
+    </form>
+
+    <div th:if="${!#lists.isEmpty(categories)}" style="margin-top:20px;border-top:1px solid #E2E8F0;padding-top:16px;">
+      <p class="text-sm fw-600 mb-8">Your Categories</p>
+      <div th:each="cat : ${categories}" class="d-flex justify-between align-center"
+           style="padding:6px 0;border-bottom:1px solid #F1F5F9;">
+        <span class="text-sm" th:text="${cat.name}">Category</span>
+        <form th:action="@{/categories/delete/{id}(id=${cat.id})}" method="post" style="margin:0;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <button type="submit" class="btn btn-danger btn-sm"
+                  data-confirm="Delete this category? Tasks won't be deleted.">✕</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #categoryModal.open { display: flex !important; }
+</style>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

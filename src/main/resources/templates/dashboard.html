@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div th:replace="~{fragments/layout :: sidebar('dashboard')}"></div>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="d-flex align-center gap-12">
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Open menu">☰</button>
+        <span class="page-title">Dashboard</span>
+      </div>
+      <div class="topbar-actions">
+        <a th:href="@{/tasks/create}" class="btn btn-primary btn-sm">+ New Task</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- Flash messages -->
+      <div th:if="${message}" class="alert alert-success" data-auto-dismiss>
+        <span>✓</span> <span th:text="${message}"></span>
+      </div>
+
+      <!-- Welcome -->
+      <div class="mb-20">
+        <h2 style="font-size:1.3rem;font-weight:800;color:#0F172A;" th:if="${user != null}">
+          Good day, <span th:text="${user.firstName}">User</span> 👋
+        </h2>
+        <p class="text-muted text-sm mt-4">Here's a summary of your tasks</p>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📋</div>
+          <div>
+            <div class="stat-value" data-value="${stats.totalTasks}" th:attr="data-value=${stats.totalTasks}" th:text="${stats.totalTasks}">0</div>
+            <div class="stat-label">Total Tasks</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">✓</div>
+          <div>
+            <div class="stat-value" th:attr="data-value=${stats.completedTasks}" th:text="${stats.completedTasks}">0</div>
+            <div class="stat-label">Completed</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon amber">⏳</div>
+          <div>
+            <div class="stat-value" th:attr="data-value=${stats.pendingTasks}" th:text="${stats.pendingTasks}">0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">⚠</div>
+          <div>
+            <div class="stat-value" th:attr="data-value=${stats.overdueTasks}" th:text="${stats.overdueTasks}">0</div>
+            <div class="stat-label">Overdue</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon teal">📅</div>
+          <div>
+            <div class="stat-value" th:attr="data-value=${stats.tasksDueToday}" th:text="${stats.tasksDueToday}">0</div>
+            <div class="stat-label">Due Today</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon violet">🗓</div>
+          <div>
+            <div class="stat-value" th:attr="data-value=${stats.tasksDueThisWeek}" th:text="${stats.tasksDueThisWeek}">0</div>
+            <div class="stat-label">Due This Week</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Grid -->
+      <div class="dashboard-grid">
+        <!-- Recent Tasks -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recent Tasks</h3>
+            <a th:href="@{/tasks}" class="btn btn-secondary btn-sm">View All</a>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div th:if="${#lists.isEmpty(recentTasks)}" class="empty-state" style="padding:40px;">
+              <div class="empty-icon">📋</div>
+              <h3>No tasks yet</h3>
+              <p>Create your first task to get started</p>
+              <a th:href="@{/tasks/create}" class="btn btn-primary btn-sm" style="margin-top:12px;">+ New Task</a>
+            </div>
+
+            <div class="table-wrap" th:unless="${#lists.isEmpty(recentTasks)}">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Due</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="task : ${recentTasks}">
+                    <td class="task-title-cell" th:text="${task.title}">Task name</td>
+                    <td>
+                      <span th:class="'badge badge-' + ${task.priority.name().toLowerCase()}"
+                            th:text="${task.priority.name()}">LOW</span>
+                    </td>
+                    <td>
+                      <span th:with="statusClass=${task.status.name() == 'IN_PROGRESS' ? 'inprogress' : task.status.name().toLowerCase()}"
+                            th:class="'badge badge-' + ${statusClass}"
+                            th:text="${task.status.name().replace('_', ' ')}">PENDING</span>
+                    </td>
+                    <td class="text-sm text-muted" th:text="${task.dueDate != null ? #temporals.format(task.dueDate, 'MMM d') : '—'}">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completion Widget -->
+        <div class="card completion-widget">
+          <h3 class="card-title mb-16" style="text-align:center;">Completion Rate</h3>
+
+          <div class="ring-wrap mb-16">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" r="64" fill="none" stroke="#E2E8F0" stroke-width="14"/>
+              <circle cx="80" cy="80" r="64" fill="none" stroke="#10B981" stroke-width="14"
+                      stroke-linecap="round"
+                      th:attr="stroke-dasharray=${stats.completionPercentage * 4.02 + ' ' + (100 - stats.completionPercentage) * 4.02}"
+                      style="transition: stroke-dasharray .8s ease;"/>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-pct" th:text="${stats.completionPercentage} + '%'">0%</div>
+              <div class="ring-sub">complete</div>
+            </div>
+          </div>
+
+          <div style="width:100%;">
+            <div class="d-flex justify-between text-sm mb-8">
+              <span class="text-muted">Progress</span>
+              <span class="fw-700" th:text="${stats.completedTasks} + ' of ' + ${stats.totalTasks} + ' tasks'">0 of 0</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" th:style="'width: ' + ${stats.completionPercentage} + '%'"></div>
+            </div>
+          </div>
+
+          <!-- Overdue alert -->
+          <div th:if="${stats.overdueTasks > 0}"
+               class="alert alert-error" style="width:100%;margin-top:20px;margin-bottom:0;">
+            <span>⚠</span>
+            <span><strong th:text="${stats.overdueTasks}">0</strong> task(s) are overdue!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

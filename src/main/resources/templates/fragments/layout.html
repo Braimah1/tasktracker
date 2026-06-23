@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${title} + ' — TaskTracker'">TaskTracker</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<nav th:fragment="sidebar(active)" id="sidebar" class="sidebar">
+  <div class="sidebar-brand">
+    <a th:href="@{/dashboard}">
+      <div class="brand-icon">✓</div>
+      <span class="brand-name">TaskTracker</span>
+    </a>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main</div>
+    <a th:href="@{/dashboard}" class="nav-item" th:classappend="${active == 'dashboard'} ? 'active' : ''">
+      <span class="icon">⊞</span> Dashboard
+    </a>
+    <a th:href="@{/tasks}" class="nav-item" th:classappend="${active == 'tasks'} ? 'active' : ''">
+      <span class="icon">☰</span> All Tasks
+    </a>
+    <a th:href="@{/tasks/create}" class="nav-item" th:classappend="${active == 'create'} ? 'active' : ''">
+      <span class="icon">＋</span> New Task
+    </a>
+
+    <div class="nav-label">Account</div>
+    <a th:href="@{/auth/logout}" class="nav-item">
+      <span class="icon">→</span> Sign Out
+    </a>
+  </nav>
+
+  <div class="sidebar-footer" sec:authorize="isAuthenticated()">
+    <div class="user-info">
+      <div class="user-avatar" sec:authentication="name" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</div>
+      <div>
+        <div class="user-name" th:if="${user != null}" th:text="${user.fullName}">User</div>
+        <div class="user-email" sec:authentication="name">email</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div th:fragment="scripts">
+  <script th:src="@{/js/main.js}"></script>
+</div>
+</html>

@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: tasktracker
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: APP_BASE_URL
+        sync: false
+      - key: DDL_AUTO
+        value: validate
+      - key: MAIL_ENABLED
+        value: "false"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
