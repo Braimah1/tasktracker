@@ -8,11 +8,20 @@ import java.time.LocalTime;
 
 @Entity
 @Table(name = "tasks")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Task {
 
-    public enum Priority { LOW, MEDIUM, HIGH, CRITICAL }
-    public enum Status { PENDING, IN_PROGRESS, COMPLETED, OVERDUE }
+    public enum Priority {
+        LOW, MEDIUM, HIGH, CRITICAL
+    }
+
+    public enum Status {
+        PENDING, IN_PROGRESS, COMPLETED, OVERDUE
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,7 +57,7 @@ public class Task {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
 
@@ -61,13 +70,16 @@ public class Task {
     }
 
     public boolean isOverdue() {
-        if (status == Status.COMPLETED) return false;
-        if (dueDate == null) return false;
+        if (status == Status.COMPLETED)
+            return false;
+        if (dueDate == null)
+            return false;
         return LocalDate.now().isAfter(dueDate);
     }
 
     public long getDaysRemaining() {
-        if (dueDate == null) return Long.MAX_VALUE;
+        if (dueDate == null)
+            return Long.MAX_VALUE;
         return java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
     }
 }
