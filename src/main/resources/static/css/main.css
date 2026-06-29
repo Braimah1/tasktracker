@@ -380,17 +380,14 @@ input[type="time"].form-control {
      declared padding. A fixed min-height keeps every field in a row
      visually aligned regardless of that browser quirk. */
   min-height: 42px;
-  /* iOS Safari renders these with native chrome that ignores most
-     custom styling (border, background, alignment) unless appearance
-     is reset. Note: 'none' can suppress the native picker controls
-     entirely on iOS — 'textfield' is the value that keeps the picker
-     functional while still allowing our styling to apply. */
-  -webkit-appearance: textfield;
-  appearance: textfield;
+  /* Deliberately NOT setting -webkit-appearance/appearance here.
+     Forcing it to 'textfield' (a common suggested fix) can make
+     WebKit silently revert box-sizing to content-box for the control,
+     which adds this rule's padding ON TOP OF width:100% instead of
+     subtracting it — producing exactly the right-edge overflow this
+     rule exists to prevent. box-sizing:border-box above only reliably
+     holds if appearance is left at its UA default. */
   text-align: left;
-  /* Normalize the native calendar/clock icon padding across browsers
-     so the field's right edge aligns with sibling selects. */
-  padding-right: 10px;
 }
 
 /* Constrain the native picker indicator so it doesn't add extra
