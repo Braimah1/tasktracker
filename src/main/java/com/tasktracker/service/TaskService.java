@@ -34,12 +34,13 @@ public class TaskService {
             .title(request.getTitle().trim())
             .description(request.getDescription())
             .priority(request.getPriority())
-            .status(Status.PENDING)
             .dueDate(request.getDueDate())
             .dueTime(request.getDueTime())
             .user(user)
             .category(category)
             .build();
+
+        task.setStatus(calculateStatus(task));
 
         return taskRepository.save(task);
     }
@@ -61,7 +62,42 @@ public class TaskService {
         task.setDueTime(request.getDueTime());
         task.setCategory(category);
 
+        // Recalculate status whenever a task is edited — e.g. pushing the
+        // due date into the past should mark it Overdue immediately, and
+        // pulling an Overdue task's due date into the future should clear
+        // that status, without ever overriding a manually Completed task.
+        task.setStatus(calculateStatus(task));
+
         return taskRepository.save(task);
+    }
+
+    /**
+     * Single source of truth for what a task's status should be, given
+     * its current due date and status. Called from both createTask()
+     * and updateTask() so status is always recalculated consistently
+     * whenever a task's data changes, rather than only when
+     * syncOverdueStatuses() happens to run separately.
+     *
+     * Rules:
+     *  - Completed tasks are never changed by this method.
+     *  - A past due date (and not completed) → Overdue.
+     *  - Otherwise, an existing in-progress task stays In Progress.
+     *  - Anything else (future due date, today, or no due date) → Pending.
+     */
+    private Status calculateStatus(Task task) {
+        if (task.getStatus() == Status.COMPLETED) {
+            return Status.COMPLETED;
+        }
+
+        if (task.getDueDate() != null && LocalDate.now().isAfter(task.getDueDate())) {
+            return Status.OVERDUE;
+        }
+
+        if (task.getStatus() == Status.IN_PROGRESS) {
+            return Status.IN_PROGRESS;
+        }
+
+        return Status.PENDING;
     }
 
     @Transactional

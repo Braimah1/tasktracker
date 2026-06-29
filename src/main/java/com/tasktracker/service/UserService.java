@@ -99,4 +99,26 @@ public class UserService {
 
         log.info("Password reset successfully for: {}", user.getEmail());
     }
+
+    /**
+     * Permanently deletes a user account along with all associated data.
+     * Tasks and categories are removed automatically via JPA cascade
+     * (User.tasks / User.categories are CascadeType.ALL) and the
+     * corresponding ON DELETE CASCADE foreign keys in the schema —
+     * no manual cleanup of child records is needed here.
+     *
+     * @param user the account to delete
+     * @param currentPassword the password the user typed to confirm deletion
+     */
+    @Transactional
+    public void deleteAccount(User user, String currentPassword) {
+        if (currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect password. Account was not deleted.");
+        }
+
+        String email = user.getEmail();
+        userRepository.delete(user);
+
+        log.info("Account permanently deleted: {}", email);
+    }
 }

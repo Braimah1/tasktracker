@@ -31,6 +31,9 @@
     </a>
 
     <div class="nav-label">Account</div>
+    <a th:href="@{/account}" class="nav-item" th:classappend="${active == 'account'} ? 'active' : ''">
+      <span class="icon">⚙</span> Account Settings
+    </a>
     <a th:href="@{/auth/logout}" class="nav-item">
       <span class="icon">→</span> Sign Out
     </a>

@@ -352,6 +352,33 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
+/* Grid items default to min-width:auto, which lets an element's
+   intrinsic content size (e.g. a native date/time picker's internal
+   shadow-DOM layout) override the column width and overflow the card.
+   min-width:0 lets the column shrink to fit, same as .form-control's
+   width:100% intends. */
+.form-row > * { min-width: 0; }
+
+/* Native date/time inputs render an internal icon + segmented text
+   layout that can otherwise force a wider intrinsic size than other
+   form controls at the same declared width. */
+input[type="date"].form-control,
+input[type="time"].form-control {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  /* Normalize the native calendar/clock icon padding across browsers
+     so the field's right edge aligns with sibling selects. */
+  padding-right: 10px;
+}
+
+/* Constrain the native picker indicator so it doesn't add extra
+   intrinsic width beyond the input's own box. */
+input[type="date"].form-control::-webkit-calendar-picker-indicator,
+input[type="time"].form-control::-webkit-calendar-picker-indicator {
+  margin-left: 4px;
+}
+
 /* ===== TABLE ===== */
 .table-wrap { overflow-x: auto; }
 
@@ -546,6 +573,12 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 @media (max-width: 900px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Tablet: table still renders as a table (horizontally scrollable
+     within its card via .table-wrap), but tightened up so more
+     columns are visible before scrolling is needed. */
+  .table th, .table td { padding: 10px 12px; }
+  .task-desc-cell { max-width: 140px; }
 }
 
 @media (max-width: 700px) {
@@ -563,13 +596,98 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
   .form-row { grid-template-columns: 1fr; }
 
-  .filter-bar { flex-direction: column; }
+  .filter-bar { flex-direction: column; align-items: stretch; }
   .filter-bar .form-control,
   .filter-bar .search-input { min-width: 100%; width: 100%; }
+  .filter-bar > button,
+  .filter-bar > a.btn { width: 100%; justify-content: center; }
 
   .auth-card { padding: 28px 20px; }
 
   .stats-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Topbar: stack title and actions, wrap action buttons */
+  .topbar {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .topbar-actions > a,
+  .topbar-actions > button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* ===== RESPONSIVE TABLE → CARD LIST ===== */
+  /* An 8-column table can't fit a phone screen even with horizontal
+     scroll, so below 700px each row becomes a stacked card instead,
+     using the data-label attributes added to each cell. Desktop table
+     rendering above this breakpoint is untouched. */
+  .table-wrap { overflow-x: visible; }
+
+  .table thead { display: none; }
+
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    padding: 4px 0;
+  }
+
+  .table tr:last-child { margin-bottom: 0; }
+
+  .table td {
+    border-bottom: none;
+    padding: 8px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: right;
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--steel);
+    text-align: left;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  /* Title and Actions cells read better left-aligned / full width
+     than the default label-left, value-right row layout. */
+  .table td[data-label="Title"] {
+    text-align: left;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .table td[data-label="Title"]::before { margin-bottom: 4px; }
+
+  .table td[data-label="Actions"] {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+  .table td[data-label="Actions"]::before { margin-bottom: 6px; }
+  .table td[data-label="Actions"] .d-flex { justify-content: flex-start; }
+
+  .task-desc-cell { max-width: none; }
 }
 
 @media (max-width: 480px) {

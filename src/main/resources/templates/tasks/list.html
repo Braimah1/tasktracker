@@ -82,27 +82,27 @@
             </thead>
             <tbody>
               <tr th:each="task : ${tasks}">
-                <td>
+                <td data-label="Title">
                   <div class="task-title-cell" th:text="${task.title}">Title</div>
                   <div class="task-desc-cell" th:if="${task.description != null and !task.description.isEmpty()}">
                     <span th:text="${task.description}">desc</span>
                   </div>
                 </td>
 
-                <td class="text-sm text-muted" th:text="${task.category != null ? task.category.name : '—'}">—</td>
+                <td class="text-sm text-muted" data-label="Category" th:text="${task.category != null ? task.category.name : '—'}">—</td>
 
-                <td>
+                <td data-label="Priority">
                   <span th:class="'badge badge-' + ${task.priority.name().toLowerCase()}"
                         th:text="${task.priority.name()}">LOW</span>
                 </td>
 
-                <td>
+                <td data-label="Status">
                   <span th:with="sc=${task.status.name() == 'IN_PROGRESS' ? 'inprogress' : task.status.name().toLowerCase()}"
                         th:class="'badge badge-' + ${sc}"
                         th:text="${task.status.name().replace('_', ' ')}">PENDING</span>
                 </td>
 
-                <td class="text-sm">
+                <td class="text-sm" data-label="Due Date">
                   <span th:if="${task.dueDate != null}" th:text="${#temporals.format(task.dueDate, 'MMM d, yyyy')}">—</span>
                   <span th:unless="${task.dueDate != null}" class="text-muted">—</span>
                   <!-- Due soon badges -->
@@ -112,7 +112,7 @@
                         class="badge" style="background:#FFFBEB;color:#92400E;margin-left:4px;">3d</span>
                 </td>
 
-                <td>
+                <td data-label="Days Left">
                   <span th:if="${task.dueDate == null}" class="days-na">—</span>
                   <span th:if="${task.status.name() == 'COMPLETED'}" class="days-ok">Done ✓</span>
                   <span th:if="${task.dueDate != null and task.status.name() != 'COMPLETED' and task.daysRemaining < 0}"
@@ -123,9 +123,9 @@
                         class="days-ok" th:text="${task.daysRemaining + 'd'}">10d</span>
                 </td>
 
-                <td class="text-sm text-muted" th:text="${#temporals.format(task.createdAt, 'MMM d')}">Jan 1</td>
+                <td class="text-sm text-muted" data-label="Created" th:text="${#temporals.format(task.createdAt, 'MMM d')}">Jan 1</td>
 
-                <td>
+                <td data-label="Actions">
                   <div class="d-flex gap-8 align-center">
                     <!-- Toggle complete -->
                     <form th:action="@{/tasks/toggle/{id}(id=${task.id})}" method="post" style="margin:0;">

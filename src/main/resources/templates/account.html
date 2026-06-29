@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragments/layout :: head('Account')}"></head>
+
+<body>
+  <div class="app-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div th:replace="~{fragments/layout :: sidebar('account')}"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <div class="d-flex align-center gap-12">
+          <button class="mobile-toggle" id="mobileToggle" aria-label="Open menu">☰</button>
+          <span class="page-title">Account Settings</span>
+        </div>
+      </div>
+
+      <div class="page-body">
+        <div th:if="${message}" class="alert alert-success" data-auto-dismiss>✓ <span th:text="${message}"></span></div>
+        <div th:if="${error}" class="alert alert-error" data-auto-dismiss>⚠ <span th:text="${error}"></span></div>
+
+        <!-- Profile Info -->
+        <div class="card mb-20" style="max-width:640px;">
+          <div class="card-header">
+            <h3 class="card-title">Profile</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Name</label>
+              <div th:text="${user.fullName}" class="text-sm fw-600">Jane Smith</div>
+            </div>
+            <div class="form-group mb-0">
+              <label class="form-label">Email</label>
+              <div th:text="${user.email}" class="text-sm fw-600">jane@example.com</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card" style="max-width:640px;border-color:#FECACA;">
+          <div class="card-header" style="border-bottom-color:#FECACA;">
+            <h3 class="card-title" style="color:#B91C1C;">Danger Zone</h3>
+          </div>
+          <div class="card-body">
+            <p class="text-sm text-muted mb-16">
+              Permanently delete your account and all associated data, including every task and category
+              you've created. <strong>This action cannot be undone.</strong>
+            </p>
+
+            <button type="button" class="btn btn-danger" onclick="openDeleteAccountModal()">
+              Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Account Confirmation Modal -->
+  <div id="deleteAccountModal"
+    style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.5);">
+    <div
+      style="background:white;border-radius:12px;padding:28px;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:8px;color:#B91C1C;">Delete your account?</h3>
+      <p class="text-sm text-muted mb-16">
+        This will permanently delete your account, all tasks, and all categories. This cannot be undone.
+        Enter your password to confirm.
+      </p>
+
+      <form th:action="@{/account/delete}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <div class="form-group">
+          <label class="form-label" for="currentPassword">Current Password</label>
+          <input class="form-control" type="password" id="currentPassword" name="currentPassword" placeholder="••••••••"
+            required autocomplete="current-password">
+        </div>
+
+        <div class="d-flex gap-8">
+          <button type="button" class="btn btn-secondary" onclick="closeDeleteAccountModal()">Cancel</button>
+          <button type="submit" class="btn btn-danger"
+            data-confirm="Are you absolutely sure you want to permanently delete your account? This cannot be undone.">
+            Permanently Delete Account
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    #deleteAccountModal.open {
+      display: flex !important;
+    }
+  </style>
+
+  <script>
+    function openDeleteAccountModal() {
+      document.getElementById('deleteAccountModal').classList.add('open');
+    }
+
+    function closeDeleteAccountModal() {
+      document.getElementById('deleteAccountModal').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeDeleteAccountModal();
+    });
+  </script>
+
+  <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+
+</html>
