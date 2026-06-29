@@ -366,16 +366,36 @@ textarea.form-control { resize: vertical; min-height: 90px; }
    form controls at the same declared width. */
 input[type="date"].form-control,
 input[type="time"].form-control {
+  /* Safari defaults these to display:inline-flex. On iOS 17 specifically,
+     inline-flex ignores width:100% entirely, letting the input render at
+     its native intrinsic width and overflow its container regardless of
+     any width/max-width rule below. Forcing display:block sidesteps that
+     bug — Chromium/Firefox are unaffected by this change. */
+  display: block;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  /* Safari renders these with internal shadow-DOM padding that can
+     make them taller or shorter than text inputs/selects at the same
+     declared padding. A fixed min-height keeps every field in a row
+     visually aligned regardless of that browser quirk. */
+  min-height: 42px;
+  /* iOS Safari renders these with native chrome that ignores most
+     custom styling (border, background, alignment) unless appearance
+     is reset. Note: 'none' can suppress the native picker controls
+     entirely on iOS — 'textfield' is the value that keeps the picker
+     functional while still allowing our styling to apply. */
+  -webkit-appearance: textfield;
+  appearance: textfield;
+  text-align: left;
   /* Normalize the native calendar/clock icon padding across browsers
      so the field's right edge aligns with sibling selects. */
   padding-right: 10px;
 }
 
 /* Constrain the native picker indicator so it doesn't add extra
-   intrinsic width beyond the input's own box. */
+   intrinsic width beyond the input's own box. (Chromium/Edge only —
+   Safari has no equivalent pseudo-element, which is expected.) */
 input[type="date"].form-control::-webkit-calendar-picker-indicator,
 input[type="time"].form-control::-webkit-calendar-picker-indicator {
   margin-left: 4px;

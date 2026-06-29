@@ -105,11 +105,6 @@
                 <td class="text-sm" data-label="Due Date">
                   <span th:if="${task.dueDate != null}" th:text="${#temporals.format(task.dueDate, 'MMM d, yyyy')}">—</span>
                   <span th:unless="${task.dueDate != null}" class="text-muted">—</span>
-                  <!-- Due soon badges -->
-                  <span th:if="${task.dueDate != null and task.status.name() != 'COMPLETED' and task.daysRemaining >= 0 and task.daysRemaining <= 1}"
-                        class="badge" style="background:#FEF2F2;color:#B91C1C;margin-left:4px;">24h</span>
-                  <span th:if="${task.dueDate != null and task.status.name() != 'COMPLETED' and task.daysRemaining > 1 and task.daysRemaining <= 3}"
-                        class="badge" style="background:#FFFBEB;color:#92400E;margin-left:4px;">3d</span>
                 </td>
 
                 <td data-label="Days Left"
