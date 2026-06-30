@@ -327,8 +327,6 @@ body {
 
 .form-control {
   width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
   padding: 10px 12px;
   font-size: .875rem;
   font-family: var(--font);
@@ -383,10 +381,9 @@ input[type="time"].form-control {
   /* Deliberately NOT setting -webkit-appearance/appearance here.
      Forcing it to 'textfield' (a common suggested fix) can make
      WebKit silently revert box-sizing to content-box for the control,
-     which adds this rule's padding ON TOP OF width:100% instead of
-     subtracting it — producing exactly the right-edge overflow this
-     rule exists to prevent. box-sizing:border-box above only reliably
-     holds if appearance is left at its UA default. */
+     which adds padding ON TOP OF width:100% instead of subtracting it
+     — producing a right-edge overflow. box-sizing:border-box above
+     only reliably holds if appearance is left at its UA default. */
   text-align: left;
 }
 

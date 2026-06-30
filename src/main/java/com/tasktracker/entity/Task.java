@@ -82,4 +82,64 @@ public class Task {
             return Long.MAX_VALUE;
         return java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
     }
+
+    /**
+     * Returns a human-readable countdown that gets more precise as the
+     * deadline approaches:
+     *  - More than 1 day away  -> "5 days left" / "1 day left"
+     *  - Due today             -> "12 hours left" / "1 hour left"
+     *  - Less than 1 hour away -> "45 minutes left" / "1 minute left"
+     *
+     * Falls back to whole-day phrasing if no due time is set, since
+     * there's no specific moment on the due date to count down to.
+     * Returns null when there's nothing meaningful to display (no due
+     * date, already overdue, or completed) — callers decide how to
+     * render those states (e.g. "Done ✓", "—", "Xd overdue").
+     */
+    public String getTimeRemainingDisplay() {
+        if (dueDate == null || status == Status.COMPLETED) {
+            return null;
+        }
+
+        LocalDate today = LocalDate.now();
+        long daysUntil = java.time.temporal.ChronoUnit.DAYS.between(today, dueDate);
+
+        if (daysUntil > 1) {
+            return daysUntil + " day" + (daysUntil == 1 ? "" : "s") + " left";
+        }
+
+        if (daysUntil < 0) {
+            return null; // overdue — caller handles this case separately
+        }
+
+        if (daysUntil == 1) {
+            return "1 day left";
+        }
+
+        // daysUntil == 0: due today. Without a specific due time, there's
+        // no moment today to count down to, so keep whole-day phrasing.
+        if (dueTime == null) {
+            return "Due today";
+        }
+
+        LocalDateTime dueAt = LocalDateTime.of(dueDate, dueTime);
+        LocalDateTime now = LocalDateTime.now();
+
+        if (!now.isBefore(dueAt)) {
+            // The due time has technically passed, but this app only
+            // treats a task as Overdue once the calendar day has passed
+            // (see TaskService.calculateStatus) — so on the due date
+            // itself, floor at zero rather than showing nothing.
+            return "0 minutes left";
+        }
+
+        long minutesUntil = java.time.temporal.ChronoUnit.MINUTES.between(now, dueAt);
+
+        if (minutesUntil < 60) {
+            return minutesUntil + " minute" + (minutesUntil == 1 ? "" : "s") + " left";
+        }
+
+        long hoursUntil = minutesUntil / 60;
+        return hoursUntil + " hour" + (hoursUntil == 1 ? "" : "s") + " left";
+    }
 }

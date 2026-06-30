@@ -110,14 +110,15 @@
                 <td data-label="Days Left"
                     th:with="daysState=${task.status.name() == 'COMPLETED'} ? 'completed' :
                              (${task.dueDate == null} ? 'none' :
-                             (${task.daysRemaining < 0} ? 'overdue' :
-                             (${task.daysRemaining <= 3} ? 'soon' : 'ok')))">
+                             (${task.daysRemaining < 0} ? 'overdue' : 'upcoming'))">
                   <span th:switch="${daysState}">
                     <span th:case="'completed'" class="days-ok">Done ✓</span>
                     <span th:case="'none'" class="days-na">—</span>
                     <span th:case="'overdue'" class="days-urgent" th:text="${-task.daysRemaining + 'd overdue'}">overdue</span>
-                    <span th:case="'soon'" class="days-soon" th:text="${task.daysRemaining + 'd'}">3d</span>
-                    <span th:case="'ok'" class="days-ok" th:text="${task.daysRemaining + 'd'}">10d</span>
+                    <span th:case="*"
+                          th:with="urgency=${task.daysRemaining <= 3} ? 'days-soon' : 'days-ok'"
+                          th:class="${urgency}"
+                          th:text="${task.timeRemainingDisplay}">3 days left</span>
                   </span>
                 </td>
 
